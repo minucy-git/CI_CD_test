@@ -34,21 +34,21 @@ jobs:
 
       - name: Copy JAR to EC2
         run: |
-          scp -i ~/.ssh/id_rsa build/libs/*-SNAPSHOT.jar ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/
+          scp -i ~/.ssh/id_rsa build/libs/*-SNAPSHOT.jar ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/app.jar
 
       - name: Restart Application on EC2
         run: |
-          ssh -T -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} bash -c << 'EOF_SCRIPT'
-            # 실행 중인 JAR 프로세스 종료
-            PID=$(pgrep -f "CI_CD_test-0.0.1-SNAPSHOT.jar")
+          ssh -T -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF_SCRIPT'
+            # 실행 중인 app.jar 프로세스가 있으면 종료
+            PID=$(pgrep -f "app.jar")
             if [ ! -z "$PID" ]; then
               echo "Stopping existing application (PID: $PID)..."
               kill -9 $PID
-              sleep 3
+              sleep 3  # 프로세스 종료 대기
             fi
 
             # 최신 JAR 파일 실행
             echo "Starting new application..."
-            nohup java -jar /home/${{ secrets.EC2_USER }}/CI_CD_test-0.0.1-SNAPSHOT.jar > /home/${{ secrets.EC2_USER }}/app.log 2>&1 &
+            nohup java -jar /home/${{ secrets.EC2_USER }}/app.jar > /home/${{ secrets.EC2_USER }}/app.log 2>&1 &
             echo "Application restarted successfully."
           EOF_SCRIPT
