@@ -40,7 +40,7 @@ jobs:
           SERVER_IP: ${{ secrets.EC2_HOST }}  # AWS Linux 서버 IP
           SERVER_USER: ${{ secrets.EC2_USER }}  # 서버 사용자명 (예: ec2-user)
         run: |
-          scp -i ~/.ssh/id_rsa build/libs/*-SNAPSHOT.jar $SERVER_USER@$SERVER_IP:/home/$$SERVER_USER/app.jar
+          scp -i ~/.ssh/id_rsa build/libs/*-SNAPSHOT.jar $SERVER_USER@$SERVER_IP:/home/$SERVER_USER/app.jar
 
       - name: Restart Application on EC2
         env:
