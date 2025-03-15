@@ -60,6 +60,6 @@ jobs:
 
             # 최신 JAR 파일 실행
             echo "Starting new application..."
-            nohup java -jar /home/${{ secrets.EC2_USER }}/app.jar > /home/${{ secrets.EC2_USER }}/app.log 2>&1 &
+            nohup java -jar ./app.jar > ./app.log 2>&1 &
             echo "Application restarted successfully."
           EOF_SCRIPT
