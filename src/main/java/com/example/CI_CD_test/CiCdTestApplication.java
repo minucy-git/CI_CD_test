@@ -30,4 +30,9 @@ class MyRestController {
 	String test3() {
 		return "hello3";
 	}
+
+	@GetMapping("/hello4")
+	String test4() {
+		return "hello4";
+	}
 }
