@@ -26,19 +26,28 @@ jobs:
         run: ./gradlew build
 
       - name: Setup SSH Key
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}  # SSH 키
+          SERVER_IP: ${{ secrets.EC2_HOST }}  # AWS Linux 서버 IP
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+          ssh-keyscan -H $SERVER_IP >> ~/.ssh/known_hosts
 
       - name: Copy JAR to EC2
+        env:
+          SERVER_IP: ${{ secrets.EC2_HOST }}  # AWS Linux 서버 IP
+          SERVER_USER: ${{ secrets.EC2_USER }}  # 서버 사용자명 (예: ec2-user)
         run: |
-          scp -i ~/.ssh/id_rsa build/libs/*-SNAPSHOT.jar ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/home/${{ secrets.EC2_USER }}/app.jar
+          scp -i ~/.ssh/id_rsa build/libs/*-SNAPSHOT.jar $SERVER_USER@$SERVER_IP:/home/$$SERVER_USER/app.jar
 
       - name: Restart Application on EC2
+        env:
+          SERVER_IP: ${{ secrets.EC2_HOST }}  # AWS Linux 서버 IP
+          SERVER_USER: ${{ secrets.EC2_USER }}  # 서버 사용자명 (예: ec2-user)
         run: |
-          ssh -T -i ~/.ssh/id_rsa ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} << 'EOF_SCRIPT'
+          ssh -T -i ~/.ssh/id_rsa $SERVER_USER@$SERVER_IP << 'EOF_SCRIPT'
             # 실행 중인 app.jar 프로세스가 있으면 종료
             PID=$(pgrep -f "app.jar")
             if [ ! -z "$PID" ]; then
@@ -49,6 +58,6 @@ jobs:
 
             # 최신 JAR 파일 실행
             echo "Starting new application..."
-            nohup java -jar /home/${{ secrets.EC2_USER }}/app.jar > /home/${{ secrets.EC2_USER }}/app.log 2>&1 &
+            nohup java -jar /home/$SERVER_USER/app.jar > /home/$SERVER_USER/app.log 2>&1 &
             echo "Application restarted successfully."
           EOF_SCRIPT
