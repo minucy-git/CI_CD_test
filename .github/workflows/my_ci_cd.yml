@@ -29,27 +29,27 @@ jobs:
 
       - name: Setup SSH Key
         env:
-          SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}  # SSH 키
-          SERVER_IP: ${{ secrets.EC2_HOST }}  # AWS Linux 서버 IP
+          EC2_SSH_PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}  # SSH 키
+          EC2_HOST: ${{ secrets.EC2_HOST }}  # AWS Linux 서버 IP
         run: |
           mkdir -p ~/.ssh
-          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          echo "$EC2_SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H $SERVER_IP >> ~/.ssh/known_hosts
+          ssh-keyscan -H $EC2_HOST >> ~/.ssh/known_hosts
 
       - name: Copy JAR to EC2
         env:
-          SERVER_IP: ${{ secrets.EC2_HOST }}  # AWS Linux 서버 IP
-          SERVER_USER: ${{ secrets.EC2_USER }}  # 서버 사용자명 (예: ec2-user)
+          EC2_HOST: ${{ secrets.EC2_HOST }}  # AWS Linux 서버 IP
+          EC2_USER: ${{ secrets.EC2_USER }}  # 서버 사용자명 (예: ec2-user)
         run: |
-          scp -i ~/.ssh/id_rsa ./app.jar $SERVER_USER@$SERVER_IP:~
+          scp -i ~/.ssh/id_rsa ./app.jar $EC2_USER@$EC2_HOST:~
 
       - name: Restart Application on EC2
         env:
-          SERVER_IP: ${{ secrets.EC2_HOST }}  # AWS Linux 서버 IP
-          SERVER_USER: ${{ secrets.EC2_USER }}  # 서버 사용자명 (예: ec2-user)
+          EC2_HOST: ${{ secrets.EC2_HOST }}  # AWS Linux 서버 IP
+          EC2_USER: ${{ secrets.EC2_USER }}  # 서버 사용자명 (예: ec2-user)
         run: |
-          ssh -T -i ~/.ssh/id_rsa $SERVER_USER@$SERVER_IP << 'EOF_SCRIPT'
+          ssh -T -i ~/.ssh/id_rsa $EC2_USER@$EC2_HOST << 'EOF_SCRIPT'
             # 실행 중인 app.jar 프로세스가 있으면 종료
             PID=$(pgrep -f "app.jar")
             if [ ! -z "$PID" ]; then
